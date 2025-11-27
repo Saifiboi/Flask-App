@@ -1,3 +1,4 @@
+echo "Declarative test"
 pipeline {
     agent any
 
