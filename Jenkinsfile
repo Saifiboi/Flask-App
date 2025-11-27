@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        API_KEY = credentials('api-secret')
+        API_KEY = credentials('api-key')
     }
     
     stages {
