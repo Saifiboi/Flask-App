@@ -1,30 +1,39 @@
 pipeline {
     agent any
 
-    tools {
-        // Use the Maven tool configured in Jenkins
-        maven 'Maven-3.9.2' // Replace with your Maven tool name in Jenkins
+    // Define parameters at the top level
+    parameters {
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Specify the version')
+        choice(name: 'VERSION', choices: ['1.1.0', '1.2.0', '1.3.0'], description: 'Choose a version')
+        booleanParam(name: 'executeTests', defaultValue: true, description: 'Run the test stage?')
+    }
+
+    environment {
+        MY_TOOL_VERSION = "${params.VERSION}"
     }
 
     stages {
         stage('Build') {
             steps {
-                echo 'Building project with Maven...'
-                // Windows users should use 'bat' instead of 'sh'
-                bat 'mvn clean install'
+                echo "Building project version ${env.MY_TOOL_VERSION}"
+                bat "echo Building version ${env.MY_TOOL_VERSION}"
             }
         }
 
         stage('Test') {
+            when {
+                expression { return params.executeTests == true }
+            }
             steps {
-                echo 'Running tests...'
-                // Windows: replace any sh command with bat
+                echo "Running tests for version ${env.MY_TOOL_VERSION}"
+                bat "echo Testing version ${env.MY_TOOL_VERSION}"
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying project...'
+                echo "Deploying version ${env.MY_TOOL_VERSION}"
+                bat "echo Deploying version ${env.MY_TOOL_VERSION}"
             }
         }
     }
@@ -32,6 +41,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning workspace...'
+            cleanWs()
         }
     }
 }
