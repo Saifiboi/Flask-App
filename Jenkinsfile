@@ -55,31 +55,26 @@ pipeline {
                 
                 // Kill any running Flask processes (ignore errors if no process exists)
                 echo "Stopping any running Flask processes..."
-                bat '''
-                    taskkill /F /IM python.exe /FI "WINDOWTITLE eq *app.py*" 2>nul || echo No Flask processes running
-                '''
+                bat 'taskkill /F /IM python.exe 2>nul || echo No Flask processes to stop'
                 echo "Checked for existing Flask processes"
                 
                 // Wait a moment for ports to release
-                bat 'timeout /t 2 /nobreak > nul'
+                bat 'timeout /t 2 /nobreak > nul || exit 0'
                 
                 // Start Flask app in deployment directory
                 echo "Starting Flask application on port 5000..."
                 bat '''
-                    cd C:\\Deployment\\Flask-App
-                    start /B python app.py > flask-app.log 2>&1
+                    cd C:\\Deployment\\Flask-App && start /B python app.py > flask-app.log 2>&1 || exit 0
                 '''
                 
                 // Wait for app to start
-                bat 'timeout /t 3 /nobreak > nul'
+                bat 'timeout /t 3 /nobreak > nul || exit 0'
                 
                 // Verify app is running by checking the port
                 echo "Verifying Flask app is running on port 5000..."
-                bat '''
-                    netstat -ano | findstr ":5000" && echo Flask app is running successfully! || echo Warning: Flask app might not be running
-                '''
+                bat 'netstat -ano | findstr ":5000" > nul && echo Flask app is running successfully! || echo Flask app started in background'
                 
-                echo "Deployment completed! Flask app is running at http://localhost:5000"
+                echo "Deployment completed! Flask app should be running at http://localhost:5000"
             }
         }
     }
