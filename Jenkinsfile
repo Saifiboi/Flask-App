@@ -95,15 +95,25 @@ pipeline {
     
     post {
         always {
-            // Archive test results
-            junit 'test-results.xml'
-            
-            // Archive build artifacts
-            archiveArtifacts artifacts: 'Flask-App-v*.zip', fingerprint: true
-            
-            // Clean up build directory
             script {
-                bat 'if exist build rmdir /S /Q build'
+                // Archive test results only if they exist
+                if (fileExists('test-results.xml')) {
+                    junit 'test-results.xml'
+                } else {
+                    echo 'No test results found to archive'
+                }
+                
+                // Archive build artifacts only if they exist
+                if (fileExists("Flask-App-v${APP_VERSION}.zip")) {
+                    archiveArtifacts artifacts: 'Flask-App-v*.zip', fingerprint: true
+                } else {
+                    echo 'No build artifacts found to archive'
+                }
+                
+                // Clean up build directory if it exists
+                if (fileExists('build')) {
+                    bat 'rmdir /S /Q build'
+                }
             }
         }
         success {
