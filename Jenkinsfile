@@ -42,39 +42,12 @@ pipeline {
             steps {
                 echo "Deploying Flask application..."
                 
-                // Create deployment target directory
-                bat '''
-                    if not exist "C:\\Deployment\\Flask-App" mkdir C:\\Deployment\\Flask-App
-                '''
+                bat 'if not exist "C:\\Deployment\\Flask-App" mkdir C:\\Deployment\\Flask-App'
                 
-                // Copy files to deployment directory
-                bat '''
-                    xcopy /E /I /Y build\\* C:\\Deployment\\Flask-App\\
-                '''
-                echo "Files copied to C:\\Deployment\\Flask-App"
+                bat 'xcopy /E /I /Y build\\* C:\\Deployment\\Flask-App\\'
                 
-                // Kill any running Flask processes (ignore errors if no process exists)
-                echo "Stopping any running Flask processes..."
-                bat 'taskkill /F /IM python.exe 2>nul || echo No Flask processes to stop'
-                echo "Checked for existing Flask processes"
-                
-                // Wait a moment for ports to release
-                bat 'timeout /t 2 /nobreak > nul || exit 0'
-                
-                // Start Flask app in deployment directory
-                echo "Starting Flask application on port 5000..."
-                bat '''
-                    cd C:\\Deployment\\Flask-App && start /B python app.py > flask-app.log 2>&1 || exit 0
-                '''
-                
-                // Wait for app to start
-                bat 'timeout /t 3 /nobreak > nul || exit 0'
-                
-                // Verify app is running by checking the port
-                echo "Verifying Flask app is running on port 5000..."
-                bat 'netstat -ano | findstr ":5000" > nul && echo Flask app is running successfully! || echo Flask app started in background'
-                
-                echo "Deployment completed! Flask app should be running at http://localhost:5000"
+                echo "Files deployed to C:\\Deployment\\Flask-App"
+                echo "To run the app manually, navigate to C:\\Deployment\\Flask-App and run: python app.py"
             }
         }
     }
