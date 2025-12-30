@@ -53,14 +53,12 @@ pipeline {
                 '''
                 echo "Files copied to C:\\Deployment\\Flask-App"
                 
-                // Kill any running Flask processes
+                // Kill any running Flask processes (ignore errors if no process exists)
                 echo "Stopping any running Flask processes..."
                 bat '''
-                    for /f "tokens=2" %%a in ('tasklist ^| findstr "python.exe"') do (
-                        taskkill /F /PID %%a 2>nul
-                    )
+                    taskkill /F /IM python.exe /FI "WINDOWTITLE eq *app.py*" 2>nul || echo No Flask processes running
                 '''
-                echo "Existing Flask processes stopped"
+                echo "Checked for existing Flask processes"
                 
                 // Wait a moment for ports to release
                 bat 'timeout /t 2 /nobreak > nul'
