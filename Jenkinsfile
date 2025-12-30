@@ -37,6 +37,53 @@ pipeline {
                 echo "Build complete: Flask-App-build.zip"
             }
         }
+        
+        stage('Deploy') {
+            steps {
+                echo "Deploying Flask application..."
+                
+                // Create deployment target directory
+                bat '''
+                    if not exist "C:\\Deployment\\Flask-App" mkdir C:\\Deployment\\Flask-App
+                '''
+                
+                // Copy files to deployment directory
+                bat '''
+                    xcopy /E /I /Y build\\* C:\\Deployment\\Flask-App\\
+                '''
+                echo "Files copied to C:\\Deployment\\Flask-App"
+                
+                // Kill any running Flask processes
+                echo "Stopping any running Flask processes..."
+                bat '''
+                    for /f "tokens=2" %%a in ('tasklist ^| findstr "python.exe"') do (
+                        taskkill /F /PID %%a 2>nul
+                    )
+                '''
+                echo "Existing Flask processes stopped"
+                
+                // Wait a moment for ports to release
+                bat 'timeout /t 2 /nobreak > nul'
+                
+                // Start Flask app in deployment directory
+                echo "Starting Flask application on port 5000..."
+                bat '''
+                    cd C:\\Deployment\\Flask-App
+                    start /B python app.py > flask-app.log 2>&1
+                '''
+                
+                // Wait for app to start
+                bat 'timeout /t 3 /nobreak > nul'
+                
+                // Verify app is running by checking the port
+                echo "Verifying Flask app is running on port 5000..."
+                bat '''
+                    netstat -ano | findstr ":5000" && echo Flask app is running successfully! || echo Warning: Flask app might not be running
+                '''
+                
+                echo "Deployment completed! Flask app is running at http://localhost:5000"
+            }
+        }
     }
     
     post {
